@@ -288,6 +288,23 @@ def run_checks(content: str) -> list[Check]:
             "Add additional tables for the Decision Matrix and Pricing Tiers if missing."
         )
 
+    # --- Content completeness ---
+    placeholder_patterns = [
+        r'[Nn]ot available on this page',
+        r'[Nn]ot available from source',
+        r'\bPLACEHOLDER\b',
+        r'[Pp]laceholder\b.*verify',
+        r'structural placeholder',
+    ]
+    placeholder_hits = sum(len(re.findall(p, content)) for p in placeholder_patterns)
+    if placeholder_hits >= 3:
+        fail(
+            "CONTENT_INCOMPLETE",
+            "high",
+            f"Content contains {placeholder_hits} placeholder or 'not available' markers — source page did not provide sufficient technical data.",
+            "Use a technical product/pricing/API page as input, not a marketing or solutions landing page."
+        )
+
     return flags
 
 
@@ -295,7 +312,7 @@ def run_checks(content: str) -> list[Check]:
 # Scoring
 # ---------------------------------------------------------------------------
 
-TOTAL_CHECKS = 22
+TOTAL_CHECKS = 23
 
 SEVERITY_WEIGHTS = {
     "high": 5,
@@ -304,8 +321,8 @@ SEVERITY_WEIGHTS = {
 }
 
 MAX_DEDUCTION = sum([
-    # high flags (10 checks × 5)
-    10 * SEVERITY_WEIGHTS["high"],
+    # high flags (11 checks × 5)
+    11 * SEVERITY_WEIGHTS["high"],
     # medium flags (7 checks × 3)
     7 * SEVERITY_WEIGHTS["medium"],
     # low flags (5 checks × 1)
